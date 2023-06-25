@@ -55,6 +55,12 @@ bool nada = _2400;
  *     
  */
 
+Button upButton;
+button_init(&upButton);
+button_set_text(&upButton, "Up");
+button_set_position(&upButton, x_position, y_position); // Set the position where you want the button to appear
+button_set_callback(&upButton, onUpButtonClick); // Set the callback function to be called when the button is clicked
+
 const float baud_adj = 0.99;
 const float adj_1200 = 1.0 * baud_adj;
 const float adj_2400 = 1.0 * baud_adj;
@@ -62,6 +68,8 @@ unsigned int tc1200 = (unsigned int)(0.5 * adj_1200 * 1000000.0 / 1200.0);
 unsigned int tc2400 = (unsigned int)(0.5 * adj_2400 * 1000000.0 / 2400.0);
 
 //---------------------------------------------------------------------------
+
+
 
 const char *mycall = "MYCALL";
 char myssid = 1;
@@ -534,9 +542,18 @@ int32_t aprs_hello_world_clean_app(void *p){
 
         // Наше событие — это нажатие кнопки
         if (event.type == EventTypeInput) {
-            // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения
-            if (event.input.key == InputKeyBack) {
-                break;
+            switch(event.key) {
+                case InputKeyUp:
+                    display_clear(); // Clear the display
+                    display_print("SENDINDG data "); // Display the text
+                case InputKeyDown:
+                    display_clear(); // Clear the display
+                    display_print("DOWNLOAD data"); // Display the text
+                case InputKeyBack:   // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения   
+                    break;
+                }
+            //if (event.input.key == InputKeyBack) {
+            //    break;
             }
         // Наше событие — это сработавший таймер
         } else if (event.type == EventTypeTick) {
@@ -550,3 +567,12 @@ int32_t aprs_hello_world_clean_app(void *p){
     aprs_hello_world_clean_app_free(app);
     return 0;
 }
+
+
+
+
+
+
+
+
+
