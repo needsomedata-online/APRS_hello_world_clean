@@ -541,22 +541,20 @@ int32_t aprs_hello_world_clean_app(void *p){
         furi_check(furi_message_queue_get(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 
         // Наше событие — это нажатие кнопки
-        if (event.type == EventTypeInput) {
-            switch(event.key) {
-                case InputKeyUp:
-                    display_clear(); // Clear the display
-                    display_print("SENDINDG data "); // Display the text
-                case InputKeyDown:
-                    display_clear(); // Clear the display
-                    display_print("DOWNLOAD data"); // Display the text
-                case InputKeyBack:   // Если нажата кнопка "назад", то выходим из цикла, а следовательно и из приложения   
-                    break;
-                }
-            //if (event.input.key == InputKeyBack) {
-            //    break;
+        
+
+            if (event.input.key == InputKeyBack) {
+                break;
             }
-        // Наше событие — это сработавший таймер
-        } else if (event.type == EventTypeTick) {
+        // Наше событие — это кнопка вверъ
+        } else if (event.type == InputKeyUp) {
+            // Сделаем что-то по таймеру
+            // Отправляем нотификацию мигания синим светодиодом
+            notification_message(app->notifications, &sequence_blink_blue_100);
+        }
+
+
+        else if (event.type == EventTypeTick) {
             // Сделаем что-то по таймеру
             // Отправляем нотификацию мигания синим светодиодом
             //notification_message(app->notifications, &sequence_blink_blue_100);
@@ -566,7 +564,7 @@ int32_t aprs_hello_world_clean_app(void *p){
 
     aprs_hello_world_clean_app_free(app);
     return 0;
-}
+
 
 
 
