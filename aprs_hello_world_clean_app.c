@@ -461,6 +461,8 @@ static void aprs_hello_world_clean_app_draw_callback(Canvas* canvas, void* ctx){
 
     canvas_set_font(canvas, FontSecondary);
     elements_multiline_text_aligned(canvas, 127, 40, AlignRight, AlignTop, "to finish, \n click back");
+    canvas_set_font(canvas, FontSecondary);
+    elements_multiline_text_aligned(canvas, 2, 40, AlignRight, AlignTop, "to RX, \n click up");
     
 }
 
