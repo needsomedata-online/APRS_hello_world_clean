@@ -24,7 +24,9 @@
 #define _FIXPOS_STATUS  3
 
 bool nada = _2400;
-
+#define MAX_PAYLOAD_SIZE 128
+uint8_t message[MAX_PAYLOAD_SIZE];
+uint16_t message_size = 0;
 /*
  * SQUARE WAVE SIGNAL GENERATION
  * 
@@ -448,21 +450,76 @@ static void aprs_hello_world_clean_app_input_callback(InputEvent* input_event, v
 }
 
 //---------------------------------------------------------------------------
+// Function to simulate receiving a message
+uint16_t receive_message(uint8_t* message, uint16_t max_size) {
+    // Simulated message for testing
+    const char* simulated_message = "Its me, Mario. APRS!";
+
+    // Copy the simulated message into the buffer
+    uint16_t message_size = strlen(simulated_message);
+    if (message_size > max_size) {
+        message_size = max_size;
+    }
+    memcpy(message, simulated_message, message_size);
+
+    return message_size;
+}
+
+void display_raw_data(Canvas* canvas, int16_t x, int16_t y, const uint8_t* data, uint16_t size) {
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str(canvas, x, y, "Raw Data:");
+
+    char hex_buffer[3];  // Increase buffer size to hold two hexadecimal characters and the null terminator
+    uint16_t line_length = 0;
+
+    for (uint16_t i = 0; i < size; i++) {
+        // Check if the character is printable ASCII
+        if (data[i] >= 32 && data[i] <= 126) {
+            snprintf(hex_buffer, sizeof(hex_buffer), "%02hhX", data[i]);
+            canvas_draw_str(canvas, x + line_length * 20, y+10, hex_buffer);
+            line_length++;
+        }
+
+        // Move to the next line when the line length reaches the display width
+        if (line_length == 128 / 10) {
+            y += 20;
+            line_length = 0;
+        }
+    }
+}
+
+// Function to receive and display the message on the canvas
+void receive_and_display_message(Canvas* canvas, int16_t x, int16_t y) {
+    // Receive the message from the APRS packet
+    message_size = receive_message(message, MAX_PAYLOAD_SIZE);
+
+
+    // Display the message on the canvas
+    canvas_set_font(canvas, FontSecondary);
+    canvas_draw_str(canvas, x, y, (const char*)message);
+    display_raw_data(canvas, x, y + 8, message, message_size);//задается отступ от текста до сырых данных
+    // Prevent the unused variable warning
+    (void)message_size;
+}
+
 
 static void aprs_hello_world_clean_app_draw_callback(Canvas* canvas, void* ctx){
     UNUSED(ctx);
     canvas_clear(canvas);
 
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 14, 8, "This is an APRS Hello World");
+   // canvas_set_font(canvas, FontSecondary);
+   // canvas_draw_str(canvas, 14, 8, "This is an APRS Hello World");
     
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 55, 32, "RUN");
+    //canvas_set_font(canvas, FontSecondary);
+    //canvas_draw_str(canvas, 55, 16, "RUN");
+    receive_and_display_message(canvas, 1, 8);
+    //display_raw_data(canvas, 10, 10, message, message_size);
+    //receive_and_display_message(canvas, 55, 16);  // Display the primary message
 
-    canvas_set_font(canvas, FontSecondary);
-    elements_multiline_text_aligned(canvas, 127, 40, AlignRight, AlignTop, "to finish, \n click back");
-    canvas_set_font(canvas, FontSecondary);
-    elements_multiline_text_aligned(canvas, 2, 40, AlignRight, AlignTop, "to RX, \n click up");
+  //  canvas_set_font(canvas, FontSecondary);
+  //  elements_multiline_text_aligned(canvas, 127, 40, AlignRight, AlignTop, "to finish, \n click back");
+  //  canvas_set_font(canvas, FontSecondary);
+  //  elements_multiline_text_aligned(canvas, 50, 40, AlignRight, AlignTop, "to RX, \n click up");
     
 }
 
@@ -517,6 +574,10 @@ void aprs_hello_world_clean_app_free(APRSHelloWorldCleanApp* app){
     furi_record_close(RECORD_GUI);
 }
 
+
+
+
+
 //---------------------------------------------------------------------------
 
 int32_t aprs_hello_world_clean_app(void *p){
@@ -528,6 +589,8 @@ int32_t aprs_hello_world_clean_app(void *p){
     furi_timer_start(app->timer, 5000);
 
     //---------------------------------------------------------------------------
+
+
 
     while(1){
         // Выбираем событие из очереди в переменную event (ждем бесконечно долго, если очередь пуста)
@@ -542,6 +605,7 @@ int32_t aprs_hello_world_clean_app(void *p){
             }
             else if (event.input.key == InputKeyUp) {
                 notification_message(app->notifications, &sequence_blink_blue_100);
+
             }
         // Наше событие — это сработавший таймер
         } else if (event.type == EventTypeTick) {
